@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Shadow Matching - Parchhai Milao</title>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+      --text: #2d3436;
+      --purple: #6c5ce7;
+      --shadow: 0 10px 20px rgba(0,0,0,0.15);
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      height: 100dvh;
+      font-family: 'Nunito', sans-serif;
+      background: var(--bg);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      color: var(--text);
+    }
+
+    /* --- SCREENS --- */
+    .screen {
+      display: none;
+      width: 100%;
+      height: 100%;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: fadeIn 0.4s ease;
+    }
+    .screen.active { display: flex; }
+    @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+    /* --- START SCREEN --- */
+    #startScreen { text-align: center; }
+    .title {
+      font-family: 'Baloo 2', cursive;
+      font-size: 3.5rem;
+      color: #fff;
+      text-shadow: 3px 3px 0 #0984e3, 6px 6px 0 rgba(0,0,0,0.1);
+      margin-bottom: 10px;
+      line-height: 1.1;
+    }
+    .subtitle {
+      font-size: 1.2rem;
+      color: #fff;
+      font-weight: 900;
+      margin-bottom: 30px;
+      text-shadow: 1px 1px 0 rgba(0,0,0,0.2);
+    }
+    .big-btn {
+      background: linear-gradient(to bottom, #fdcb6e, #f39c12);
+      color: white;
+      border: none;
+      border-radius: 30px;
+      padding: 20px 50px;
+      font-family: 'Baloo 2', cursive;
+      font-size: 1.8rem;
+      cursor: pointer;
+      box-shadow: 0 8px 0 #d35400;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .big-btn:active { transform: translateY(8px); box-shadow: 0 0px 0 #d35400; }
+
+    /* --- GAME SCREEN --- */
+    #gameScreen {
+      justify-content: flex-start;
+      padding-top: 20px;
+      overflow-y: auto;
+    }
+
+    .header {
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-shrink: 0;
+    }
+    
+    .score-box {
+      font-family: 'Baloo 2', cursive;
+      font-size: 1.4rem;
+      color: var(--purple);
+      background: rgba(255,255,255,0.7);
+      padding: 8px 20px;
+      border-radius: 20px;
+      box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+    }
+
+    /* Target Area (Top) */
+    .target-area {
+      width: 100%;
+      max-width: 350px;
+      height: 160px;
+      background: #fff;
+      border-radius: 25px;
+      box-shadow: 0 10px 0 rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 30px;
+      position: relative;
+      border: 4px dashed #dfe6e9;
+    }
+    
+    .target-emoji {
+      font-size: 6rem;
+      animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes bounceIn {
+      0% { transform: scale(0); opacity: 0; }
+      80% { transform: scale(1.1); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Options Area (Bottom) */
+    .options-area {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      width: 100%;
+      max-width: 400px;
+      margin-bottom: 20px;
+    }
+
+    .shadow-btn {
+      background: #fff;
+      border: 4px solid #fff;
+      border-radius: 20px;
+      aspect-ratio: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 3.5rem;
+      cursor: pointer;
+      box-shadow: 0 8px 0 rgba(0,0,0,0.15);
+      transition: transform 0.1s, box-shadow 0.1s;
+      /* CSS trick to make emoji black */
+      filter: brightness(0) contrast(200%);
+      opacity: 0.7;
+    }
+
+    .shadow-btn:active { 
+      transform: translateY(8px); 
+      box-shadow: 0 0px 0 rgba(0,0,0,0.15); 
+    }
+
+    /* Correct Answer Animation */
+    .shadow-btn.correct {
+      filter: none; /* Show original color */
+      opacity: 1;
+      border-color: #00b894;
+      box-shadow: 0 8px 0 #00b894;
+      animation: pop 0.4s ease;
+    }
+
+    /* Wrong Answer Animation */
+    .shadow-btn.wrong {
+      animation: shake 0.4s ease;
+    }
+
+    @keyframes pop { 0%{transform:scale(1);} 50%{transform:scale(1.15);} 100%{transform:scale(1);} }
+    @keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-10px);} 75%{transform:translateX(10px);} }
+
+    /* Confetti */
+    .confetti {
+      position: fixed;
+      font-size: 2rem;
+      pointer-events: none;
+      z-index: 9999;
+      animation: fall linear forwards;
+    }
+    @keyframes fall {
+      0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+    }
+
+    /* --- WIN SCREEN --- */
+    #winScreen h1 {
+      font-family: 'Baloo 2', cursive;
+      font-size: 3.5rem;
+      color: #fff;
+      text-shadow: 2px 2px 0 #00b894, 4px 4px 0 rgba(0,0,0,0.1);
+      margin-bottom: 10px;
+    }
+    .star-icon {
+      font-size: 6rem;
+      animation: bounce 1s infinite alternate;
+      margin: 20px 0;
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- 1. START SCREEN -->
+  <div id="startScreen" class="screen active">
+    <h1 class="title">Shadow<br>Match</h1>
+    <p class="subtitle">सही परछाई (Shadow) ढूंढो! 🕵️‍♂️</p>
+    <button class="big-btn" onclick="startGame()">शुरू करें</button>
+  </div>
+
+  <!-- 2. GAME SCREEN -->
+  <div id="gameScreen" class="screen">
+    <div class="header">
+      <div class="score-box">Score: <span id="score">0</span></div>
+      <div class="score-box">Round: <span id="round">1</span>/10</div>
+    </div>
+
+    <div class="target-area">
+      <div class="target-emoji" id="targetEmoji">🍎</div>
+    </div>
+
+    <div class="options-area" id="optionsArea">
+      <!-- Shadow buttons will be generated here -->
+    </div>
+  </div>
+
+  <!-- 3. WIN SCREEN -->
+  <div id="winScreen" class="screen">
+    <h1 class="title">शाबाश!</h1>
+    <div class="star-icon">🏆</div>
+    <p class="subtitle" id="winText">तुमने सारी परछाइयां पहचान लीं!</p>
+    <button class="big-btn" onclick="startGame()" style="margin-top: 20px;">फिर से खेलें 🔄</button>
+  </div>
+
+  <script>
+    /* =========================================================
+       1. DATA & STATE
+       ========================================================= */
+    const ALL_ITEMS = [
+      { id: 'apple', icon: '🍎', name: 'Apple' },
+      { id: 'lion', icon: '🦁', name: 'Lion' },
+      { id: 'banana', icon: '🍌', name: 'Banana' },
+      { id: 'elephant', icon: '🐘', name: 'Elephant' },
+      { id: 'car', icon: '🚗', name: 'Car' },
+      { id: 'star', icon: '⭐', name: 'Star' },
+      { id: 'dog', icon: '🐶', name: 'Dog' },
+      { id: 'cat', icon: '🐱', name: 'Cat' },
+      { id: 'rocket', icon: '🚀', name: 'Rocket' },
+      { id: 'icecream', icon: '🍦', name: 'Ice Cream' }
+    ];
+
+    let score = 0;
+    let round = 1;
+    const MAX_ROUNDS = 10;
+    let isAnswering = false;
+
+    const targetEmoji = document.getElementById('targetEmoji');
+    const optionsArea = document.getElementById('optionsArea');
+    const scoreEl = document.getElementById('score');
+    const roundEl = document.getElementById('round');
+    
+    const screens = {
+      start: document.getElementById('startScreen'),
+      game: document.getElementById('gameScreen'),
+      win: document.getElementById('winScreen')
+    };
+
+    /* =========================================================
+       2. AUDIO & SPEECH
+       ========================================================= */
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) audioCtx = new AudioContext();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function playTone(freq, type, duration, vol=0.1) {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    }
+
+    function sfxCorrect() {
+      playTone(600, 'sine', 0.1); 
+      setTimeout(() => playTone(800, 'sine', 0.2), 100);
+    }
+    function sfxWrong() { playTone(200, 'sawtooth', 0.2, 0.1); }
+    
+    function speak(text) {
+      if (!("speechSynthesis" in window)) return;
+      window.speechSynthesis.cancel();
+      const utt = new SpeechSynthesisUtterance(text);
+      utt.lang = 'en-US';
+      utt.rate = 0.85;
+      const voices = speechSynthesis.getVoices();
+      const preferred = voices.find(v => v.lang.includes('en') && (v.name.includes('Google') || v.name.includes('Samantha')));
+      if (preferred) utt.voice = preferred;
+      speechSynthesis.speak(utt);
+    }
+
+    /* =========================================================
+       3. GAME LOGIC
+       ========================================================= */
+    function showScreen(name) {
+      Object.values(screens).forEach(s => s.classList.remove('active'));
+      screens[name].classList.add('active');
+    }
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function startGame() {
+      initAudio();
+      score = 0;
+      round = 1;
+      isAnswering = false;
+      scoreEl.textContent = score;
+      
+      showScreen('game');
+      loadRound();
+      speak("Find the correct shadow!");
+    }
+
+    function loadRound() {
+      if (round > MAX_ROUNDS) {
+        winGame();
+        return;
+      }
+
+      roundEl.textContent = round;
+      isAnswering = false;
+
+      // Pick 1 correct item and 2 wrong items
+      const shuffledItems = shuffle([...ALL_ITEMS]);
+      const correctItem = shuffledItems[0];
+      const wrongItems = [shuffledItems[1], shuffledItems[2]];
+      
+      const options = shuffle([correctItem, ...wrongItems]);
+
+      // Set Target (Colorful)
+      targetEmoji.textContent = correctItem.icon;
+      
+      // Re-trigger animation
+      targetEmoji.style.animation = 'none';
+      targetEmoji.offsetHeight; /* trigger reflow */
+      targetEmoji.style.animation = 'bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+
+      // Render Options (Shadows)
+      optionsArea.innerHTML = '';
+      options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'shadow-btn';
+        btn.textContent = opt.icon;
+        
+        btn.onclick = () => handleAnswer(btn, opt.id, correctItem);
+        optionsArea.appendChild(btn);
+      });
+    }
+
+    function handleAnswer(btn, selectedId, correctItem) {
+      if (isAnswering) return;
+
+      if (selectedId === correctItem.id) {
+        // CORRECT
+        isAnswering = true;
+        btn.classList.add('correct');
+        sfxCorrect();
+        score += 10;
+        scoreEl.textContent = score;
+
+        // Reveal all correct answers (in case they want to see)
+        speak(correctItem.name);
+        createConfetti(15);
+
+        // Next round after delay
+        setTimeout(() => {
+          round++;
+          loadRound();
+        }, 1500);
+
+      } else {
+        // WRONG
+        sfxWrong();
+        btn.classList.add('wrong');
+        
+        // Remove wrong class after animation ends
+        setTimeout(() => {
+          btn.classList.remove('wrong');
+        }, 400);
+      }
+    }
+
+    function winGame() {
+      showScreen('win');
+      speak("Amazing! You are a shadow master!");
+      createConfetti(60);
+    }
+
+    /* =========================================================
+       4. VISUAL EFFECTS
+       ========================================================= */
+    function createConfetti(count = 40) {
+      const icons = ['⭐', '🌟', '✨', '🎈', '🎉'];
+      for (let i = 0; i < count; i++) {
+        const c = document.createElement('div');
+        c.className = 'confetti';
+        c.textContent = icons[Math.floor(Math.random() * icons.length)];
+        c.style.left = Math.random() * 100 + 'vw';
+        c.style.top = '-50px';
+        c.style.animationDuration = (Math.random() * 1.5 + 1.5) + 's';
+        c.style.fontSize = (Math.random() * 20 + 20) + 'px';
+        
+        document.body.appendChild(c);
+        setTimeout(() => c.remove(), 3500);
+      }
+    }
+
+    // Preload voices
+    if ("speechSynthesis" in window) {
+      speechSynthesis.getVoices();
+    }
+
+  </script>
+</body>
+</html>
